@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import os
 from decouple import config
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,8 +27,14 @@ SECRET_KEY = 'django-insecure-fu(0mu25xsbku0q&fr5s_as*6l&1(_@6hm)d4k&rfnsfx)%nt$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+if os.environ.get('DJANGO_ENV') == 'development':
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS_ARRAY', default='', cast=lambda v: [
+        s.strip() for s in v.split(',')])
 
+    if not ALLOWED_HOSTS:
+        raise ValueError("ALLOWED_HOSTS must be set in production.")
 
 # Application definition
 BASE_APPS = [
@@ -150,7 +156,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS_ARRAY', default='', cast=lambda v: [s.strip() for s in v.split(',')])
+if os.environ.get('DJANGO_ENV') == 'development':
+    CORS_ALLOWED_ORIGINS = ['*']
+else:
+    CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS_ARRAY', default='', cast=lambda v: [
+        s.strip() for s in v.split(',')])
+    if not CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS = ['*']
 
 REST_FRAMEWORK = {
     ...: ...,
