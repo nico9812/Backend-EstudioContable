@@ -79,6 +79,32 @@ class UserLogin(APIView):
             return Response({'errors': e.detail}, status=status.HTTP_418_IM_A_TEAPOT)
         return Response(status=status.HTTP_418_IM_A_TEAPOT)
     
+class UserDatosSession(APIView):
+    permission_classes = (permissions.AllowAny,)
+    authentication_classes = (SessionAuthentication,)
+    ##
+    def post(self, request, user_id):
+        try:
+            user = User.objects.get(id= user_id)
+            grupo = user.groups.all().first()
+            grupo = grupo.id if grupo else None
+
+            if user:
+                token = Token.objects.get_or_create(user = user)
+                if token:
+                    datos ={
+                        'token':token[0].key,
+                        'username':user.username,
+                        'group':grupo,
+                        'id':user.id,
+                    }
+                    return Response(datos, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'errors': e.detail}, status=status.HTTP_418_IM_A_TEAPOT)
+        return Response(status=status.HTTP_418_IM_A_TEAPOT)
+
+
+
 class registerUser(APIView):
     permissions_classes = [permissions.IsAuthenticated]
     authentication_classes =[TokenAuthentication]
