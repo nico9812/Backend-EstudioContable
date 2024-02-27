@@ -80,8 +80,8 @@ class UserLogin(APIView):
         return Response(status=status.HTTP_418_IM_A_TEAPOT)
     
 class UserDatosSession(APIView):
-    permission_classes = (permissions.AllowAny,)
-    authentication_classes = (SessionAuthentication,)
+    permissions_classes = [permissions.IsAuthenticated]
+    authentication_classes =[TokenAuthentication]
     ##
     def post(self, request, user_id):
         try:
@@ -91,7 +91,8 @@ class UserDatosSession(APIView):
 
             if user:
                 token = Token.objects.get_or_create(user = user)
-                if token:
+
+                if token.user.id == user_id:
                     datos ={
                         'token':token[0].key,
                         'username':user.username,
