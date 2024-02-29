@@ -34,3 +34,35 @@ def custom_validation(data):
         raise serializers.ValidationError(errors)
 
     return data
+
+def passwordpatch_validation(data,id):
+
+    email = data.get('email', '').strip()
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+    passwordConfirm = data.get('passwordConfirm', '').strip()
+    errors = {}
+    ##
+
+    if email != '' and UserModel.objects.filter(email=email).exists():
+        errors['email'] = ['Email no válido o ya está registrado.']
+    # Validación de las contraseñas
+    if password != passwordConfirm:
+        errors['password'] = ['Las contraseñas no coinciden.']
+
+    elif len(password) < 8:
+        print(password, len(password))
+        errors['password'] = ['Elige otra contraseña, mínimo 8 caracteres.']
+    # Validación del nombre de usuario
+    if username == '' or UserModel.objects.filter(username=username).exclude(id=id).exists():
+        errors['username'] = ['Nombre de usuario no válido o no disponible.']
+
+    if username == UserModel.objects.get(id=id).username:
+        data.pop('username',None)
+        
+    hashed_password = make_password(password)
+    data['password'] = hashed_password
+    data.pop('passwordConfirm', None)
+    if errors:
+        raise serializers.ValidationError(errors)
+    return data

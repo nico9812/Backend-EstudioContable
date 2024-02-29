@@ -6,7 +6,7 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets
-from .validations import custom_validation
+from .validations import UserModel, custom_validation, passwordpatch_validation
 from django.db.models import Q
 from django.utils import timezone
 from django.conf import settings
@@ -41,6 +41,30 @@ class UserViewSet(viewsets.ModelViewSet):
                 print(3)
                 return self.unauthorized_response()
         return super().dispatch(request, *args, **kwargs)
+    
+    def partial_update(self, request, *args, **kwargs):
+        id = kwargs['pk']
+        user = UserModel.objects.get(pk=id)
+        try:
+            clean_data = passwordpatch_validation(request.data,id)
+            serializer = UserSerializer(instance=user,data=clean_data, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                print('valido')
+                serializer.save()
+                print('guardado')
+                user.set_password(clean_data['password'])
+                user.save()
+                return Response(status=status.HTTP_200_OK)
+            else:
+                print('no valido')
+        except serializers.ValidationError as e:
+            return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+        
     
     def unauthorized_response(self):
         response = Response(status=status.HTTP_401_UNAUTHORIZED)
