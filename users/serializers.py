@@ -20,8 +20,7 @@ class UserLoginSerializer(serializers.Serializer):
         password = data.get('password')
         user = authenticate(username=username, password=password)
         if not user:
-            raise serializers.ValidationError(
-                {'errors': 'Usuario o contraseña incorrectos'})
+            raise serializers.ValidationError({'errors': 'Usuario o contraseña incorrectos'})
         return user
 
 

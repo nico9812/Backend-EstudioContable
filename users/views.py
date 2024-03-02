@@ -7,11 +7,7 @@ from users.authentication import ExpiringTokenAuthentication
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets
 from .validations import UserModel, custom_validation, passwordpatch_validation
-from django.db.models import Q
-from django.utils import timezone
-from django.conf import settings
-from .permissions import IsContador, IsOwner, IsCliente
-
+from .permissions import IsContador
 
 User = get_user_model()
 
@@ -54,7 +50,7 @@ class UserLogin(APIView):
                 grupo = grupo.id if grupo else None
 
                 if user:
-                    token = Token.objects.create(user=user)
+                    token = Token.objects.get_or_create(user=user)
                     if token:
                         datos = {
                             'token': token[0].key,
@@ -64,7 +60,7 @@ class UserLogin(APIView):
                         }
                         return Response(datos, status=status.HTTP_200_OK)
         except serializers.ValidationError as e:
-            return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -90,8 +86,8 @@ class UserDatosSession(APIView):
                     }
                     return Response(datos, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({'errors': e.detail}, status=status.HTTP_418_IM_A_TEAPOT)
-        return Response(status=status.HTTP_418_IM_A_TEAPOT)
+            return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class registerUser(APIView):

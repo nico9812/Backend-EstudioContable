@@ -8,6 +8,7 @@ class IsOwner(BasePermission):
 
 class IsContador(BasePermission):
     def has_permission(self, request, view):
+        print(request)
         return request.user.groups.filter(name='contador').exists()
 
 
