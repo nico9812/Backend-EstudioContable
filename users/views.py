@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets
 from .validations import UserModel, custom_validation, passwordpatch_validation
 from .permissions import IsContador
+from django.utils import timezone
 
 User = get_user_model()
 
