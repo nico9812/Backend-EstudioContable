@@ -46,6 +46,7 @@ THIRD_APPS = [
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS + THIRD_APPS
 
 MIDDLEWARE = [
+    'users.middleware.VencimientoToken',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -133,7 +134,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-TOKEN_EXPIRATION = config('TOKEN_EXPIRATION', default=5*60*60, cast=int)
+TOKEN_EXPIRATION = config('TOKEN_EXPIRATION', default=10, cast=int)
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',

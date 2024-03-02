@@ -28,16 +28,10 @@ class UserViewSet(viewsets.ModelViewSet):
             token = Token.objects.get(key=token)
         except Exception as e:
             return self.unauthorized_response()
-        ahora = timezone.now()
-        diferencia_segundos = (ahora - token.created).total_seconds()
-        if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-            token.delete()
-            return self.unauthorized_response()
 
         if token:
             user = token.user
             group = user.groups.all().first().id
-            print(user.username, group, token)
             if group != 1:
                 return self.unauthorized_response()
         return super().dispatch(request, *args, **kwargs)
@@ -56,11 +50,6 @@ class UserViewSet(viewsets.ModelViewSet):
         except serializers.ValidationError as e:
             return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-        
     
     def unauthorized_response(self):
         response = Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -150,17 +139,7 @@ class UserSearchAPIView(APIView):
     def get(self, request,search,format=None):
         try:
             token = Token.objects.get(key=request.auth)
-            ahora = timezone.now()
-            diferencia_segundos = (ahora - token.created).total_seconds()
-            if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-                token.delete()
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
         except:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        ahora = timezone.now()
-        diferencia_segundos = (ahora - token.created).total_seconds()
-        if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-            token.delete()
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         user = token.user
@@ -192,7 +171,6 @@ class Logout(APIView):
 
     def get(self, request):
         # Borra el token del usuario al cerrar la sesión
-        print(request.auth)
         if request.auth:
             request.auth.delete()
             return Response({'detail': 'Logout successful.'}, status=status.HTTP_200_OK)

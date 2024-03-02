@@ -3,6 +3,16 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 import os
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+import os
+
+def delete_pdf_file(sender, instance, **kwargs):
+    # Eliminar el archivo asociado al documento
+    if instance.archivo:
+        if os.path.isfile(instance.archivo.path):
+            os.remove(instance.archivo.path)
+
 
 def validate_pdf(value):
     if not value.name.endswith('.pdf'):
@@ -24,3 +34,5 @@ class DocumentoPDF(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+pre_delete.connect(delete_pdf_file, sender=DocumentoPDF)

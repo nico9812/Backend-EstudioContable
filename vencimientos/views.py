@@ -17,11 +17,6 @@ class VencimientosUsuarioView(APIView):
                 token = Token.objects.get(key=request.auth)
             except:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            ahora = timezone.now()
-            diferencia_segundos = (ahora - token.created).total_seconds()
-            if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-                token.delete()
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
 
             if token:
                 user = token.user
@@ -47,12 +42,6 @@ class VencimientoContaViewSet(viewsets.ModelViewSet):
         try:
             token = Token.objects.get(key=token)
         except:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        
-        ahora = timezone.now()
-        diferencia_segundos = (ahora - token.created).total_seconds()
-        if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-            token.delete()
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         if token:
