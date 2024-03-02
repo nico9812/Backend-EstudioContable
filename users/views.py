@@ -51,16 +51,17 @@ class UserLogin(APIView):
                 grupo = grupo.id if grupo else None
 
                 if user:
-                    token = Token.objects.get(user=user)
-                    if token:
-                        token.key = Token.objects.create_key()
-                        token.created = timezone.now()
+                    try:
+                        token = Token.objects.get(user=user)
+                        token.created = timezone.now()  # Actualiza la fecha de creación del token
                         token.save()
-                    else:
-                        token = Token.objects.create(user = user)
+                    except Token.DoesNotExist:
+                        # Si no existe un token para el usuario, crea uno nuevo
+                        token = Token.objects.create(user=user)
+
                     if token:
                         datos = {
-                            'token': token[0].key,
+                            'token': token.key,
                             'username': user.username,
                             'group': grupo,
                             'id': user.id,
