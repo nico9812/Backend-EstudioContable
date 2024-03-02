@@ -2,6 +2,7 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.authtoken.models import Token
 
 class ExpiringTokenAuthentication(TokenAuthentication):
 
@@ -25,7 +26,6 @@ class ExpiringTokenAuthentication(TokenAuthentication):
 
         if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
             token.delete()
-            token.save()
             raise AuthenticationFailed(
                 {"error": "Token Expirado", "is_authenticated": False}
             )
