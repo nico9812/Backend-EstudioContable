@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets
 from .validations import UserModel, custom_validation, passwordpatch_validation
 from .permissions import IsContador
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -50,7 +51,13 @@ class UserLogin(APIView):
                 grupo = grupo.id if grupo else None
 
                 if user:
-                    token = Token.objects.get_or_create(user=user)
+                    token = Token.objects.get(user=user)
+                    if token:
+                        token.key = Token.objects.create_key()
+                        token.created = timezone.now()
+                        token.save()
+                    else:
+                        token = Token.objects.create(user = user)
                     if token:
                         datos = {
                             'token': token[0].key,
