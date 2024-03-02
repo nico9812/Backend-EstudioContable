@@ -1,7 +1,7 @@
+import os
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
 from .models import DocumentoPDF
 from .serializers import DocumentoPDFSerializer
 from rest_framework.views import APIView
@@ -9,41 +9,26 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from django.http import HttpResponse
 from django.conf import settings
-import os
 from rest_framework.authtoken.models import Token
 from .models import Categoria
 from .serializers import CategoriaSerializer
-from django.utils import timezone
+from users.authentication import ExpiringTokenAuthentication
+from users.permissions import IsContador, IsCliente, IsOwner
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
-
-    def dispatch(self, request, *args, **kwargs):
-        # Verificar si el usuario está autenticado
-        token = request.META.get('HTTP_AUTHORIZATION').split()[1]
-        # Obtener el token del usuario actual
-        try:
-            token = Token.objects.get(key=token)
-        except Token.DoesNotExist:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        return super().dispatch(request, *args, **kwargs)
+    permission_classes = [permissions.IsAuthenticated, IsContador, ]
+    authentication_classes = [ExpiringTokenAuthentication]
 
 
 class ProtectedMediaView(APIView):
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, id):
-
-        try:
-            token = Token.objects.get(key=request.auth)
-        except:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        token = Token.objects.get(key=request.auth)
         user = token.user
         group = user.groups.all().first().id
         doc = DocumentoPDF.objects.get(id=id)
@@ -64,46 +49,24 @@ class ProtectedMediaView(APIView):
                 )
                 response.content = file
                 return response
+        else:
+            return Response({"mensaje": "Sin permisos."}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-
-class DocumentoPDFViewSet(viewsets.ModelViewSet):
+class DocumentoPDFViewSetContador(viewsets.ModelViewSet):
     queryset = DocumentoPDF.objects.all()
-    serializer_class = DocumentoPDFSerializer
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
-
-    def dispatch(self, request, *args, **kwargs):
-        # Verificar si el usuario está autenticado
-        token = request.META.get('HTTP_AUTHORIZATION').split()[1]
-        # Obtener el token del usuario actual
-        try:
-            token = Token.objects.get(key=token)
-        except Token.DoesNotExist:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        
-        if token:
-            user = token.user
-            group = user.groups.all().first().id
-            if group != 1:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-            
-
-        return super().dispatch(request, *args, **kwargs)
+    serialize1r_class = DocumentoPDFSerializer
+    authentication_classes = [ExpiringTokenAuthentication, ]
+    permission_classes = [permissions.IsAuthenticated, IsContador]
 
 
-class DocumentoPDFAPIView(APIView):
-    authentication_classes = [TokenAuthentication]
+class DocumentoPDFAPIViewClientes(APIView):
+    authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, id):
 
-        try:
-            token = Token.objects.get(key=request.auth)
-        except:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
+        token = Token.objects.get(key=request.auth)
         user = token.user
         group = user.groups.all().first().id
 
@@ -112,22 +75,17 @@ class DocumentoPDFAPIView(APIView):
                 propietario__id=id).order_by('-fecha_creacion')
             serializer = DocumentoPDFSerializer(documentos_pdf, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({"mensaje": "Sin permisos."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class DocumentosFiltrarCatView(APIView):
-    permissions_classes = [permissions.IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [ExpiringTokenAuthentication, ]
+    permission_classes = [permissions.IsAuthenticated, ]
 
     def get(self, request, categoria, id, format=None):
 
-        try:
-            token = Token.objects.get(key=request.auth)
-        except:
-            print(1)
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        
+        token = Token.objects.get(key=request.auth)
         user = token.user
         group = user.groups.all().first().id
         if group == 1 or user.id == id:
@@ -146,5 +104,4 @@ class DocumentosFiltrarCatView(APIView):
             else:
                 return Response({"mensaje": "Categoria no encontrada."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print(3)
             return Response({"mensaje": "Sin permisos."}, status=status.HTTP_401_UNAUTHORIZED)
