@@ -53,14 +53,14 @@ class ProtectedMediaView(APIView):
             return Response({"mensaje": "Sin permisos."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class DocumentoPDFViewSetContador(viewsets.ModelViewSet):
+class DocumentoPDFViewSet(viewsets.ModelViewSet):
     queryset = DocumentoPDF.objects.all()
-    serialize1r_class = DocumentoPDFSerializer
+    serializer_class = DocumentoPDFSerializer
     authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated, IsContador]
 
 
-class DocumentoPDFAPIViewClientes(APIView):
+class DocumentoPDFAPIView(APIView):
     authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated]
 
