@@ -1,3 +1,4 @@
+from rest_framework.permissions import BasePermission
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import AnonymousUser
 from django.utils import timezone
@@ -14,16 +15,19 @@ class VencimientoToken:
 
     def __call__(self, request):
         if 'HTTP_AUTHORIZATION' in request.META:
+            print(request.META['HTTP_AUTHORIZATION'])
             auth = request.META['HTTP_AUTHORIZATION'].split()
             if len(auth) == 2 and auth[0].lower() == 'token':
                 try:
                     token = Token.objects.get(key=auth[1])
                     ahora = timezone.now()
-                    diferencia_segundos = (ahora - token.created).total_seconds()
+                    diferencia_segundos = (
+                        ahora - token.created).total_seconds()
                     if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
                         token.delete()
                         return HttpResponseBadRequest("Token expirado. Por favor, inicia sesión nuevamente.")
                 except Token.DoesNotExist:
+                    print('test')
                     request.auth_token = None
         else:
             request.auth_token = None
