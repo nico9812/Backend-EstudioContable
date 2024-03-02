@@ -38,7 +38,6 @@ class UserViewSet(viewsets.ModelViewSet):
             user = token.user
             group = user.groups.all().first().id
             if group != 1:
-                print(3)
                 return self.unauthorized_response()
         return super().dispatch(request, *args, **kwargs)
     
@@ -49,14 +48,11 @@ class UserViewSet(viewsets.ModelViewSet):
             clean_data = passwordpatch_validation(request.data,id)
             serializer = UserSerializer(instance=user,data=clean_data, partial=True)
             if serializer.is_valid(raise_exception=True):
-                print('valido')
                 serializer.save()
-                print('guardado')
                 user.set_password(clean_data['password'])
                 user.save()
                 return Response(status=status.HTTP_200_OK)
             else:
-                print('no valido')
         except serializers.ValidationError as e:
             return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)

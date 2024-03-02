@@ -60,4 +60,5 @@ class VencimientoContaViewSet(viewsets.ModelViewSet):
             group = user.groups.all().first().id
             if group != 1:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+            
         return super().dispatch(request, *args, **kwargs)

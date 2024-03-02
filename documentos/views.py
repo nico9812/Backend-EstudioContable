@@ -105,6 +105,13 @@ class DocumentoPDFViewSet(viewsets.ModelViewSet):
         if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
             token.delete()
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
+        if token:
+            user = token.user
+            group = user.groups.all().first().id
+            if group != 1:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            
 
         return super().dispatch(request, *args, **kwargs)
 
