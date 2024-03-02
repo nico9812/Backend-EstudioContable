@@ -1,6 +1,6 @@
 from backend.settings.base import *
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS_ARRAY', default='', cast=lambda v: [
     s.strip() for s in v.split(',')])

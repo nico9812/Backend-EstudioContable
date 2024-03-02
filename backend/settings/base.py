@@ -5,8 +5,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 config_path = os.path.join(BASE_DIR, '.env')
-if os.path.exists(config_path):
-    config.read(config_path)
 
 SECRET_KEY = config('DJANGO_SECRET_KEY', default='Secreto')
 
@@ -133,7 +131,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-TOKEN_EXPIRATION = config('TOKEN_EXPIRATION', default=60, cast=int)
+TOKEN_EXPIRATION = config('TOKEN_EXPIRATION', default=10)
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
