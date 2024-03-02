@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model, authenticate
 
 User = get_user_model()
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -11,7 +12,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField(write_only=True)  # Marcar como write_only para no incluir en las respuestas
+    # Marcar como write_only para no incluir en las respuestas
+    password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         username = data.get('username')
@@ -20,11 +22,10 @@ class UserLoginSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError({'errors': 'Usuario o contraseña incorrectos'})
         return user
-    
+
+
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = '__all__'
         extra_kwargs = {'password': {'write_only': True}}
-    
-

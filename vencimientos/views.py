@@ -9,45 +9,30 @@ from django.utils import timezone
 from django.conf import settings
 from datetime import date
 from django.contrib.auth import get_user_model
+from users.authentication import ExpiringTokenAuthentication
+from users.permissions import IsContador, IsCliente, IsOwner
+
 
 class VencimientosUsuarioView(APIView):
-    def get(self, request, usuario_id):
-        try:
-            try:
-                token = Token.objects.get(key=request.auth)
-            except:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
+    authentication_classes = [ExpiringTokenAuthentication, ]
+    permission_classes = [permissions.IsAuthenticated, ]
 
-            if token:
-                user = token.user
-                group = user.groups.all().first().id
-                if user.id == usuario_id or group == 1:
-                    vencimientos = Vencimiento.objects.filter(propietario__id=usuario_id,fecha__gte=date.today())
-                    serializer = VencimientoSerializer(vencimientos, many=True)
-                else:
-                    return Response({"error": "Acceso no autorizado"}, status=status.HTTP_401_UNAUTHORIZED)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, usuario_id):
+        token = Token.objects.get(key=request.auth)
+        if token:
+            user = token.user
+            group = user.groups.all().first().id
+            if user.id == usuario_id or group == 1:
+                vencimientos = Vencimiento.objects.filter(
+                    propietario__id=usuario_id, fecha__gte=date.today())
+                serializer = VencimientoSerializer(vencimientos, many=True)
+            else:
+                return Response({"error": "Acceso no autorizado"}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(serializer.data)
+
 
 class VencimientoContaViewSet(viewsets.ModelViewSet):
     queryset = Vencimiento.objects.filter(fecha__gte=date.today())
     serializer_class = VencimientoSerializer
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
-
-    def dispatch(self, request, *args, **kwargs):
-        # Obtener el token de autenticación del encabezado de la solicitud
-        token = request.META.get('HTTP_AUTHORIZATION').split()[1]
-        try:
-            token = Token.objects.get(key=token)
-        except:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        if token:
-            user = token.user
-            group = user.groups.all().first().id
-            if group != 1:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-            
-        return super().dispatch(request, *args, **kwargs)
+    authentication_classes = [ExpiringTokenAuthentication, ]
+    permission_classes = [permissions.IsAuthenticated, IsContador ]
