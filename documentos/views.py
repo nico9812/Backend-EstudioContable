@@ -70,7 +70,7 @@ class ProtectedMediaView(APIView):
 
             # Entregar el archivo de medios
             with open(full_path, 'rb') as file:
-                response = Response(
+                response = HttpResponse(
                     headers={
                         'Content-Disposition': f'attachment; filename={os.path.basename(full_path)}'},
                     content_type='application/pdf',
