@@ -31,15 +31,6 @@ class CategoriaViewSet(viewsets.ModelViewSet):
         except Token.DoesNotExist:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        # Calcular la diferencia en segundos
-        ahora = timezone.now()
-        diferencia_segundos = (ahora - token.created).total_seconds()
-
-        # Si la diferencia es mayor a 5 segundos, eliminar el token
-        if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-            token.delete()
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -51,11 +42,6 @@ class ProtectedMediaView(APIView):
 
         try:
             token = Token.objects.get(key=request.auth)
-            ahora = timezone.now()
-            diferencia_segundos = (ahora - token.created).total_seconds()
-            if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-                token.delete()
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
         except:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         user = token.user
@@ -96,15 +82,6 @@ class DocumentoPDFViewSet(viewsets.ModelViewSet):
             token = Token.objects.get(key=token)
         except Token.DoesNotExist:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        # Calcular la diferencia en segundos
-        ahora = timezone.now()
-        diferencia_segundos = (ahora - token.created).total_seconds()
-
-        # Si la diferencia es mayor a 5 segundos, eliminar el token
-        if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-            token.delete()
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
         
         if token:
             user = token.user
@@ -124,11 +101,6 @@ class DocumentoPDFAPIView(APIView):
 
         try:
             token = Token.objects.get(key=request.auth)
-            ahora = timezone.now()
-            diferencia_segundos = (ahora - token.created).total_seconds()
-            if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-                token.delete()
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
         except:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
@@ -155,13 +127,7 @@ class DocumentosFiltrarCatView(APIView):
         except:
             print(1)
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        ahora = timezone.now()
-        diferencia_segundos = (ahora - token.created).total_seconds()
-        if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-            token.delete()
-            print(2)
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
+        
         user = token.user
         group = user.groups.all().first().id
         if group == 1 or user.id == id:

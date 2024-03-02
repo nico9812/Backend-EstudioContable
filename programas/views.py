@@ -19,11 +19,6 @@ class ProgramaViewSet(viewsets.ModelViewSet):
         # Obtener el token de autenticación del encabezado de la solicitud
         try:
             token = Token.objects.get(key=token)
-            ahora = timezone.now()
-            diferencia_segundos = (ahora - token.created).total_seconds()
-            if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-                token.delete()
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
         except:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
@@ -51,11 +46,6 @@ class ProgramasUsuarioAPIView(APIView):
         try:
             try:
                 token = Token.objects.get(key=request.auth)
-                ahora = timezone.now()
-                diferencia_segundos = (ahora - token.created).total_seconds()
-                if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-                    token.delete()
-                    return Response(status=status.HTTP_401_UNAUTHORIZED)
             except:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             
@@ -78,22 +68,10 @@ class ProSearchAPIView(APIView):
     def get(self, request,search,id,format=None):
         try:
             token = Token.objects.get(key=request.auth)
-            ahora = timezone.now()
-            diferencia_segundos = (ahora - token.created).total_seconds()
-            if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-                token.delete()
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
         except:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        
-        ahora = timezone.now()
-        diferencia_segundos = (ahora - token.created).total_seconds()
-        if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
-            token.delete()
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         user = token.user
-        print(user)
         group = user.groups.all().first().id
         if group == 1 or user.id == id:
             if search is not None and search != '':
