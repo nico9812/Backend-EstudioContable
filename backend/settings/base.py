@@ -131,7 +131,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-TOKEN_EXPIRATION = config('TOKEN_EXPIRATION', default=10)
+TOKEN_EXPIRATION = config('TOKEN_EXPIRATION', default=10, cast=int)
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
