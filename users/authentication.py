@@ -24,6 +24,8 @@ class ExpiringTokenAuthentication(TokenAuthentication):
         diferencia_segundos = (ahora - token.created).total_seconds()
 
         if diferencia_segundos > getattr(settings, 'TOKEN_EXPIRATION'):
+            token.delete()
+            token.save()
             raise AuthenticationFailed(
                 {"error": "Token Expirado", "is_authenticated": False}
             )

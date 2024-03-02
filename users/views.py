@@ -54,11 +54,6 @@ class UserLogin(APIView):
                 grupo = grupo.id if grupo else None
 
                 if user:
-                    token = Token.objects.get(user=user)
-                    if token:
-                        token.delete()
-                        token.save()
-
                     token = Token.objects.create(user=user)
                     if token:
                         datos = {
