@@ -28,12 +28,24 @@ class UserViewSet(viewsets.ModelViewSet):
                 instance=user, data=clean_data, partial=True)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
-                user.set_password(clean_data['password'])
-                user.save()
+                if 'password' in clean_data:
+                    user.set_password(clean_data['password'])
+                    user.save()
                 return Response(status=status.HTTP_200_OK)
         except serializers.ValidationError as e:
+            print(e)
             return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+    def handle_exception(self, exc):
+        # Imprimir el error
+        print("Error en la vista del programa:", exc)
+
+        # Devolver una respuesta de error al cliente
+        return Response(
+            {"detail": "Ocurrió un error en el servidor."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 class UserLogin(APIView):
