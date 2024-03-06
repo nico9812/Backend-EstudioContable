@@ -19,7 +19,7 @@ from users.permissions import IsContador, IsCliente, IsOwner
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    permission_classes = [permissions.IsAuthenticated, IsContador, ]
+    permission_classes = [permissions.IsAuthenticated,]
     authentication_classes = [ExpiringTokenAuthentication]
 
 
