@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 
 class CustomUser(AbstractUser):
     recovery_password = models.CharField(max_length=255, blank=True, null=True)
+    empresa = models.CharField(max_length=255, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.id:
