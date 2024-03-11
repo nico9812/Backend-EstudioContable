@@ -105,13 +105,10 @@ class DocumentosFiltrarCatView(APIView):
                         categoria__id=categoria, propietario__id=id)
 
                 serializer = DocumentoPDFSerializer(documentos_pdf, many=True)
-                if serializer.data:
-                    for documento in serializer.data:
-                        id = documento['categoria']
-                        documento['categoria'] = Categoria.objects.get(id = id).nombre
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                
-                return Response({"mensaje": "error."}, status=status.HTTP_400_BAD_REQUEST)
+                for documento in serializer.data:
+                    id = documento['categoria']
+                    documento['categoria'] = Categoria.objects.get(id = id).nombre
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({"mensaje": "Categoria no encontrada."}, status=status.HTTP_400_BAD_REQUEST)
         else:
