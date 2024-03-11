@@ -10,9 +10,6 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
 
 class DocumentoPDFSerializer(serializers.ModelSerializer):
-    categoria = serializers.CharField(
-        source='categoria.nombre', read_only=True)
-
     class Meta:
         model = DocumentoPDF
         fields = ['id', 'nombre', 'archivo',

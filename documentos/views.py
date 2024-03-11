@@ -59,7 +59,6 @@ class DocumentoPDFViewSet(viewsets.ModelViewSet):
     authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated, IsContador]
 
-
 class DocumentoPDFAPIView(APIView):
     authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated]
@@ -74,6 +73,8 @@ class DocumentoPDFAPIView(APIView):
             documentos_pdf = DocumentoPDF.objects.filter(
                 propietario__id=id).order_by('-fecha_creacion')
             serializer = DocumentoPDFSerializer(documentos_pdf, many=True)
+            for documento in serializer.data:
+                documento['categoria'] = Categoria.objects.get(id = documento['categoria']).nombre
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"mensaje": "Sin permisos."}, status=status.HTTP_401_UNAUTHORIZED)
@@ -100,6 +101,8 @@ class DocumentosFiltrarCatView(APIView):
                         categoria__id=categoria, propietario__id=id)
 
                 serializer = DocumentoPDFSerializer(documentos_pdf, many=True)
+                for documento in serializer.data:
+                    documento['categoria'] = Categoria.objects.get(id = documento['categoria']).nombre
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({"mensaje": "Categoria no encontrada."}, status=status.HTTP_400_BAD_REQUEST)
