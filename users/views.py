@@ -36,16 +36,16 @@ class UserViewSet(viewsets.ModelViewSet):
             print(e)
             return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    
-    def handle_exception(self, exc):
-        # Imprimir el error
-        print("Error en la vista del programa:", exc)
 
-        # Devolver una respuesta de error al cliente
-        return Response(
-            {"detail": "Ocurrió un error en el servidor."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    # def handle_exception(self, exc):
+    #     # Imprimir el error
+    #     print("Error en la vista del programa:", exc)
+
+    #     # Devolver una respuesta de error al cliente
+    #     return Response(
+    #         {"detail": "Ocurrió un error en el servidor."},
+    #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
+    #     )
 
 
 class UserLogin(APIView):
