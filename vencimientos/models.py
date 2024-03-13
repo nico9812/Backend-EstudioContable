@@ -7,6 +7,7 @@ class Vencimiento(models.Model):
     alarma = models.BooleanField(default=False)
     propietario = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='vencimientos')
     is_active = models.BooleanField(default=True)
+    mensualidad = models.BooleanField(default=False)
 
     def __str__(self):
         return self.nombre

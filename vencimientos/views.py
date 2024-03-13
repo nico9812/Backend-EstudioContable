@@ -11,6 +11,7 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from users.authentication import ExpiringTokenAuthentication
 from users.permissions import IsContador, IsCliente, IsOwner
+from datetime import datetime
 
 
 class VencimientosUsuarioView(APIView):
@@ -27,30 +28,69 @@ class VencimientosUsuarioView(APIView):
                     vencimientos = Vencimiento.objects.filter(
                         propietario__id=usuario_id,
                         fecha__month=mes,
-                        fecha__year=anio
+                        fecha__year=anio,
                     )
-                    
                     serializer = VencimientoSerializer(vencimientos, many=True)
+
+
+                    # Modificar los vencimientos con mensualidad activa
+                    nuevos_vencimientos = []
+                    for vencimiento in serializer.data:
+                        if vencimiento['mensualidad']:
+                            fecha_actual = datetime.strptime(vencimiento['fecha'], '%Y-%m-%d')  # Establecer el día como 1 para evitar problemas con meses de diferentes días
+                            mes_actual = fecha_actual.month
+                            for i in range(mes_actual + 1, 13):
+                                nueva_fecha = fecha_actual.replace(month=i)
+                                nuevos_vencimientos.append({
+                                    'id': vencimiento['id'],
+                                    'nombre': vencimiento['nombre'],
+                                    'fecha': nueva_fecha.strftime('%Y-%m-%d'),
+                                    'alarma': vencimiento['alarma'],
+                                    'propietario': vencimiento['propietario'],
+                                    'is_active': vencimiento['is_active'],
+                                    'mensualidad': vencimiento['mensualidad']
+                                })
+                    
+                    # Unir los vencimientos originales con los nuevos generados
+                    vencimientos_data = serializer.data + nuevos_vencimientos
+
                 else:
                     return Response({"error": "Mes o año proporcionados son inválidos"}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"error": "Acceso no autorizado"}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({"error": "Acceso no autorizado"}, status=status.HTTP_401_UNAUTHORIZED)
-        return Response(serializer.data)
+        return Response(vencimientos_data)
 
-    def handle_exception(self, exc):
-        # Imprimir el error
-        print("Error en la vista del programa:", exc)
+    # def handle_exception(self, exc):
+    #     # Imprimir el error
+    #     print("Error en la vista del programa:", exc)
 
-        # Devolver una respuesta de error al cliente
-        return Response(
-            {"detail": "Ocurrió un error en el servidor."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    #     # Devolver una respuesta de error al cliente
+    #     return Response(
+    #         {"detail": "Ocurrió un error en el servidor."},
+    #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
+    #     )
 
 class VencimientoContaViewSet(viewsets.ModelViewSet):
-    queryset = Vencimiento.objects.filter(fecha__gte=date.today())
+    queryset = Vencimiento.objects.filter()
     serializer_class = VencimientoSerializer
     authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated, IsContador ]
+
+    def create(self, request, *args, **kwargs):
+        # Obtenemos los datos del request
+        data = request.data
+
+        # Convertimos la fecha del formato string a objeto datetime
+        fecha = datetime.strptime(data['fecha'], '%Y-%m-%d')
+
+        # Obtener el día del mes
+        dia = fecha.day
+
+        # Si el día es mayor a 28, poner mensualidad en False
+        if dia > 28:
+            data['mensualidad'] = False
+
+        # Llamamos al método create del padre (superclass)
+        return super().create(request, *args, **kwargs)
