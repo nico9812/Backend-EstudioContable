@@ -17,12 +17,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Vencimiento',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('nombre', models.CharField(max_length=255)),
                 ('fecha', models.DateField()),
                 ('alarma', models.BooleanField(default=False)),
+                ('mensualidad', models.BooleanField(default=False)),
                 ('is_active', models.BooleanField(default=True)),
-                ('propietario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='vencimientos', to=settings.AUTH_USER_MODEL)),
+                ('propietario', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='vencimientos', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]
