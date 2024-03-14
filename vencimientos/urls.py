@@ -7,5 +7,5 @@ router.register(r'vencimientos', VencimientoContaViewSet, basename='vencimientos
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('vencimiento/<int:usuario_id>/', VencimientosUsuarioView.as_view(), name='vencimientos_cliente'),
+    path('vencimiento/<int:usuario_id>/<int:mes>/<int:anio>/', VencimientosUsuarioView.as_view(), name='vencimientos_cliente'),
 ]
