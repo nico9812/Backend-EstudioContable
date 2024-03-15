@@ -30,6 +30,15 @@ class VencimientosUsuarioView(APIView):
                         fecha__month=mes,
                         fecha__year=anio,
                     )
+
+                    vencimientos_mensuales = Vencimiento.objects.filter(
+                        propietario__id=usuario_id,
+                        fecha__month__lt=mes,
+                        fecha__year=anio,
+                        mensualidad=True,
+                    )
+                    vencimientos = vencimientos.union(vencimientos_mensuales)
+
                     serializer = VencimientoSerializer(vencimientos, many=True)
 
 
@@ -37,19 +46,11 @@ class VencimientosUsuarioView(APIView):
                     nuevos_vencimientos = []
                     for vencimiento in serializer.data:
                         if vencimiento['mensualidad']:
-                            fecha_actual = datetime.strptime(vencimiento['fecha'], '%Y-%m-%d')  # Establecer el día como 1 para evitar problemas con meses de diferentes días
+                            fecha_actual = datetime.strptime(vencimiento['fecha'], '%Y-%m-%d')  
                             mes_actual = fecha_actual.month
-                            for i in range(mes_actual + 1, 13):
-                                nueva_fecha = fecha_actual.replace(month=i)
-                                nuevos_vencimientos.append({
-                                    'id': vencimiento['id'],
-                                    'nombre': vencimiento['nombre'],
-                                    'fecha': nueva_fecha.strftime('%Y-%m-%d'),
-                                    'alarma': vencimiento['alarma'],
-                                    'propietario': vencimiento['propietario'],
-                                    'is_active': vencimiento['is_active'],
-                                    'mensualidad': vencimiento['mensualidad']
-                                })
+                            if mes_actual != mes:
+                                nueva_fecha = fecha_actual.replace(month=mes)
+                                vencimiento['fecha'] = nueva_fecha.strftime('%Y-%m-%d')
                     
                     # Unir los vencimientos originales con los nuevos generados
                     vencimientos_data = serializer.data + nuevos_vencimientos
