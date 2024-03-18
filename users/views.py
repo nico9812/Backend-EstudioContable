@@ -84,30 +84,12 @@ class UserLogin(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserDatosSession(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+class ValidateToken(APIView):
     authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, user_id):
-        try:
-            user = User.objects.get(id=user_id)
-            grupo = user.groups.all().first()
-            grupo = grupo.id if grupo else None
-
-            if user:
-                token = Token.objects.get_or_create(user=user)
-
-                if token.user.id == user_id:
-                    datos = {
-                        'token': token[0].key,
-                        'username': user.username,
-                        'group': grupo,
-                        'id': user.id,
-                    }
-                    return Response(datos, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'errors': e.detail}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request):
+        return Response({'message': 'Token valido'})
 
 
 class registerUser(APIView):
