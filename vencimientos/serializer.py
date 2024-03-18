@@ -1,14 +1,25 @@
 from rest_framework import serializers
 from .models import Vencimiento
 
+
 class VencimientoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vencimiento
-        fields = ['id', 'nombre', 'fecha', 'alarma', 'propietario', 'is_active', 'mensualidad']
+        fields = ['id', 'nombre', 'fecha', 'alarma',
+                  'propietario', 'is_active', 'mensualidad']
 
+
+class VencimientoSerializerWithPropietarioName(serializers.ModelSerializer):
+    propietario_nombre = serializers.CharField(
+        source='propietario.username', read_only=True)
+
+    class Meta:
+        model = Vencimiento
+        fields = ['id', 'nombre', 'fecha', 'alarma',
+                  'propietario_nombre', 'is_active', 'mensualidad']
 
     # Esta es otra opcion de obtener las mensualidades No borres
-        
+
     # def to_representation(self, instance):
     #     representation = super().to_representation(instance)
     #     if instance.mensualidad:

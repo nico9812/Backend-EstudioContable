@@ -14,3 +14,12 @@ class DocumentoPDFSerializer(serializers.ModelSerializer):
         model = DocumentoPDF
         fields = ['id', 'nombre', 'archivo',
                   'propietario', 'categoria', 'fecha_creacion']
+
+class DocumentoPDFSerializerWithPropietarioName(serializers.ModelSerializer):
+    propietario_nombre = serializers.CharField(
+        source='propietario.username', read_only=True)
+
+    class Meta:
+        model = DocumentoPDF
+        fields = ['id', 'nombre', 'archivo',
+                  'propietario_nombre', 'categoria', 'fecha_creacion']

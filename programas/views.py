@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status, permissions
 from .models import Programa
-from .serializers import ProgramaSerializer
+from .serializers import ProgramaSerializer, ProgramaSerializerWithPropietarioName
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
@@ -8,6 +8,7 @@ from rest_framework.authtoken.models import Token
 from django.db.models import Q
 from users.authentication import ExpiringTokenAuthentication
 from users.permissions import IsContador, IsCliente, IsOwner
+
 
 class ProgramaViewSet(viewsets.ModelViewSet):
     queryset = Programa.objects.all()
@@ -44,7 +45,6 @@ class ProgramasUsuarioAPIView(APIView):
             return Response({"error": "Acceso no autorizado"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-
 class ProSearchAPIView(APIView):
     permissions_classes = [permissions.IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -72,3 +72,22 @@ class ProSearchAPIView(APIView):
                 return Response({"error": "Por favor, proporcione una palabra clave para buscar."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "Sin permisos."}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class ProgramasRecientes(APIView):
+    permissions_classes = [permissions.IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get(self, request):
+        ifContador = request.user.groups.filter(name="contador").exists()
+
+        if ifContador:
+            queryset = Programa.objects.all().order_by(
+                'id')[:3]
+        else:
+            queryset = Programa.objects.filter(
+                usuario=request.user).order_by('id')[:3]
+
+        serializer = ProgramaSerializerWithPropietarioName(
+            queryset, many=True)
+        return Response(serializer.data)

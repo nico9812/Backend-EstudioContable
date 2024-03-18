@@ -1,17 +1,12 @@
 from rest_framework import viewsets, permissions, status
-from rest_framework.authentication import TokenAuthentication
 from .models import Vencimiento
-from .serializer import VencimientoSerializer
+from .serializer import VencimientoSerializer, VencimientoSerializerWithPropietarioName
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
-from django.utils import timezone
-from django.conf import settings
-from datetime import date
-from django.contrib.auth import get_user_model
 from users.authentication import ExpiringTokenAuthentication
 from users.permissions import IsContador, IsCliente, IsOwner
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class VencimientosUsuarioView(APIView):
@@ -41,17 +36,18 @@ class VencimientosUsuarioView(APIView):
 
                     serializer = VencimientoSerializer(vencimientos, many=True)
 
-
                     # Modificar los vencimientos con mensualidad activa
                     nuevos_vencimientos = []
                     for vencimiento in serializer.data:
                         if vencimiento['mensualidad']:
-                            fecha_actual = datetime.strptime(vencimiento['fecha'], '%Y-%m-%d')  
+                            fecha_actual = datetime.strptime(
+                                vencimiento['fecha'], '%Y-%m-%d')
                             mes_actual = fecha_actual.month
                             if mes_actual != mes:
                                 nueva_fecha = fecha_actual.replace(month=mes)
-                                vencimiento['fecha'] = nueva_fecha.strftime('%Y-%m-%d')
-                    
+                                vencimiento['fecha'] = nueva_fecha.strftime(
+                                    '%Y-%m-%d')
+
                     # Unir los vencimientos originales con los nuevos generados
                     vencimientos_data = serializer.data + nuevos_vencimientos
 
@@ -73,11 +69,12 @@ class VencimientosUsuarioView(APIView):
     #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
     #     )
 
+
 class VencimientoContaViewSet(viewsets.ModelViewSet):
     queryset = Vencimiento.objects.filter()
     serializer_class = VencimientoSerializer
     authentication_classes = [ExpiringTokenAuthentication, ]
-    permission_classes = [permissions.IsAuthenticated, IsContador ]
+    permission_classes = [permissions.IsAuthenticated, IsContador]
 
     def create(self, request, *args, **kwargs):
         # Obtenemos los datos del request
@@ -95,3 +92,25 @@ class VencimientoContaViewSet(viewsets.ModelViewSet):
 
         # Llamamos al método create del padre (superclass)
         return super().create(request, *args, **kwargs)
+
+
+class VencimientosRecientes(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        today = datetime.now().date()
+        seven_days_from_now = today + timedelta(days=7)
+
+        ifContador = request.user.groups.filter(name="contador").exists()
+
+        if ifContador:
+            queryset = Vencimiento.objects.filter(
+                fecha__range=[today, seven_days_from_now]).order_by('fecha')[:3]
+        else:
+            queryset = Vencimiento.objects.filter(propietario=request.user, fecha__range=[
+                                                  today, seven_days_from_now]).order_by('fecha')[:3]
+
+        serializer = VencimientoSerializerWithPropietarioName(
+            queryset, many=True)
+        return Response(serializer.data)

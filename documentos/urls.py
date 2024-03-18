@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CategoriaViewSet, DocumentoPDFViewSet, ProtectedMediaView, DocumentoPDFAPIView, DocumentosFiltrarCatView
+from .views import CategoriaViewSet, DocumentoPDFViewSet, ProtectedMediaView, DocumentoPDFAPIView, DocumentosFiltrarCatView, DocumentosRecientes
 
 router = DefaultRouter()
 router.register(r'documentos', DocumentoPDFViewSet, basename='Documentos')
@@ -15,4 +15,6 @@ urlpatterns = [
          name='DocumentoPDFAPIView'),
     path('documentosFiltrar/<str:categoria>/<int:id>/',
          DocumentosFiltrarCatView.as_view(), name='Documentofiltrar'),
+    path('dashboard/documentos_recientes', DocumentosRecientes.as_view(),
+         name='documentos_recientes'),
 ]
