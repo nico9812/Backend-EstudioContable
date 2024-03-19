@@ -3,7 +3,7 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import DocumentoPDF
-from .serializers import DocumentoPDFSerializer
+from .serializers import DocumentoPDFSerializer, DocumentoPDFSerializerWithPropietarioName
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
@@ -59,6 +59,7 @@ class DocumentoPDFViewSet(viewsets.ModelViewSet):
     authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated, IsContador]
 
+
 class DocumentoPDFAPIView(APIView):
     authentication_classes = [ExpiringTokenAuthentication, ]
     permission_classes = [permissions.IsAuthenticated]
@@ -76,7 +77,8 @@ class DocumentoPDFAPIView(APIView):
             if serializer.data:
                 for documento in serializer.data:
                     id = documento['categoria']
-                    documento['categoria'] = Categoria.objects.get(id = id).nombre
+                    documento['categoria'] = Categoria.objects.get(
+                        id=id).nombre
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"mensaje": "Sin permisos."}, status=status.HTTP_401_UNAUTHORIZED)
@@ -105,9 +107,29 @@ class DocumentosFiltrarCatView(APIView):
                 serializer = DocumentoPDFSerializer(documentos_pdf, many=True)
                 for documento in serializer.data:
                     id = documento['categoria']
-                    documento['categoria'] = Categoria.objects.get(id = id).nombre
+                    documento['categoria'] = Categoria.objects.get(
+                        id=id).nombre
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({"mensaje": "Categoria no encontrada."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"mensaje": "Sin permisos."}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class DocumentosRecientes(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        ifContador = request.user.groups.filter(name="contador").exists()
+
+        if ifContador:
+            queryset = DocumentoPDF.objects.all().order_by(
+                'fecha_creacion')[:3]
+        else:
+            queryset = DocumentoPDF.objects.filter(
+                propietario=request.user).order_by('fecha_creacion')[:3]
+
+        serializer = DocumentoPDFSerializerWithPropietarioName(
+            queryset, many=True)
+        return Response(serializer.data)
