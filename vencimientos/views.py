@@ -91,7 +91,26 @@ class VencimientoContaViewSet(viewsets.ModelViewSet):
             data['mensualidad'] = False
 
         # Llamamos al método create del padre (superclass)
-        return super().create(request, *args, **kwargs)
+        return super().create(request, *args, **kwargs)    
+    
+    def update(self, request, *args, **kwargs):
+        # Obtenemos los datos del request
+        # partial = kwargs.pop('partial', False)
+        # instance = self.get_object()
+        data = request.data
+
+        # Convertimos la fecha del formato string a objeto datetime
+        fecha = datetime.strptime(data['fecha'], '%Y-%m-%d')
+
+        # Obtener el día del mes
+        dia = fecha.day
+
+        # Si el día es mayor a 28, poner mensualidad en False
+        if dia > 28:
+            data['mensualidad'] = False
+
+        # Llamamos al método update del padre (superclass)
+        return super().update(request, *args, **kwargs)
 
 
 class VencimientosRecientes(APIView):
